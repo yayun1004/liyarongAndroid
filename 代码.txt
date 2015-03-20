@@ -1,0 +1,137 @@
+1、文件替换：   
+写一个程序, 读入 template.txt 和 env.properties
+将template 中 ${NAME}表达式里的变量替换为env里设定的值. 然后输出到一个文件里.
+第一个变量是: ${webwork.jsp.include_flush}
+第二个变量是: ${webwork.i18n.encoding}
+第三个第四个变量分别是: ${webwork.ui.templateSuffix}和${webwork.ui.notfound}
+
+public class FileReplace3 {
+	private static final String PROPERTY_FILE = "env.properties";
+	private static ArrayList<String> oldlist = new ArrayList<String>();
+	private static ArrayList<String> newlist = new ArrayList<String>();
+
+	public static void main(String arg[]) throws IOException {
+		//FileReplace3 fr = new FileReplace3();
+
+		//File file = new File("template.txt");
+		BufferedReader br1 = new BufferedReader(new FileReader("template.txt"));
+		String str = "";
+		while (str != null) {
+			str = br1.readLine();
+			deal(str);
+		}
+		br1.close();
+		// 替换前的变量
+		String temp1;
+		String temp2 = "";
+		int j = 0;
+		System.out.println(oldlist.size());
+		for (int i = 0; i < oldlist.size(); i++) {
+			temp1 = oldlist.get(i);
+			if (temp1 == null) {
+				System.out.println("oldlist index is null!");
+			} else {
+				temp2 = readDate(temp1);
+				if (temp2 == null) {
+					// System.out.println("temp2 is null");
+					newlist.add(j++, "null");
+				} else {
+					newlist.add(j++, temp2);
+				}
+
+			}
+
+		}
+		// 输出替换后的值
+		for (int i = 0; i < newlist.size(); i++) {
+
+			System.out.println("newlist:" + newlist.get(i));
+		}
+
+		File file2 = new File("template.txt");
+
+		BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("temp.txt"));
+
+		BufferedReader br2 = new BufferedReader(new FileReader(file2));
+		String str2 = "";
+		String str_new = "";
+		int i;
+		str2 = br2.readLine();
+		while (str2 != null) {
+
+			// System.out.println(str2);
+			if (str2 == "") {
+				str2 = br2.readLine(); // 本来是空行，直接写入空行
+				bufferedWriter.newLine();
+			}
+
+			else // 非空行处理
+			{
+				for (i = 0; i < oldlist.size(); i++) {
+					String tempstr = "${" + oldlist.get(i) + "}";
+					if (str2.contains(tempstr)) {
+
+						// System.out.println("cuo wu");
+						str_new = str2.replace(tempstr, newlist.get(i));
+						str2 = str_new;
+					}
+
+				}
+
+				bufferedWriter.write(str2);
+				bufferedWriter.newLine();
+			}
+			str2 = br2.readLine();
+		}
+
+		br2.close();
+		bufferedWriter.close();
+	}
+
+	public static void deal(String str) {
+		// TODO Auto-generated method stub
+		int first = -1, end = -1;
+
+		while (str != null) {
+			first = str.indexOf("{");
+			end = str.indexOf("}");
+			String substr = "";
+
+			if (first > -1 && first < end && end < str.length()) {
+				String x = str.substring(first + 1, end);
+				System.out.println(x);
+
+				oldlist.add(x);
+				substr = str.substring(end + 1);
+
+				str = substr;
+				first = end;
+				end = end + 1;
+			} else {
+				break;
+			}
+
+		}
+
+	}
+	// env.properties文件中根据key值取出value
+	public static String readDate(String str) {
+		Properties props = new Properties();
+		int k = 0;
+		try {
+			InputStream in = new BufferedInputStream(new FileInputStream(
+					PROPERTY_FILE));
+			props.load(in);
+			in.close();
+			String value = "";
+			value = props.getProperty(str);
+			return value;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+
+}
